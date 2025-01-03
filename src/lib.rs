@@ -1,57 +1,52 @@
-#![allow(unused_imports)]
-#![allow(dead_code)]
+pub mod layer;
+use std::vec;
 
-use std::{
-    borrow::Borrow,
-    collections::HashMap,
-    time::{Duration, Instant},
-    vec,
-};
+use layer::Layer;
 
-use std::sync::mpsc::Sender;
+pub mod layers;
+use layers::activation_functions::ActivationFunction::{ReLU, Sigmoid};
 
 pub mod neural_network;
-pub mod utils;
-use ndarray::{array, Array2};
-
-use crate::neural_network::{NeuralNetwork, NEURAL_NETWORK_MANAGER};
-
-const TICK_SPEED: u32 = 1;
+use neural_network::NeuralNetwork;
 
 pub fn main() {
-    println!("Begin");
+    let mut network = NeuralNetwork::new(vec![
+        Layer::linear(4, 4, ReLU),
+        Layer::linear(4, 2, Sigmoid),
+        Layer::linear(2, 1, ReLU),
+    ]);
 
-    /* let neural_network_manager = NeuralNetworkManager::new(); */
-    /*
-       let inputs = array![[1], [2], [3], [4]];
-       let weights = array![[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3], [4, 4, 4, 4]]; // array![[1, 2, 3, 4]];
-    */
-/* 
-    let inputs = Array2::from_shape_vec((4, 1), vec![1, 2, 3, 4]).unwrap();
-    let weights =
-        Array2::from_shape_vec((4, 4), vec![1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4])
-            .unwrap();
+    let inputs: Vec<f32> = vec![0., 0., 0., 0.];
+    let target: f32 = 1.;
 
-    let prod = weights.dot(&inputs);
-    println!("dot product {:?}", prod);
+    println!("\nData initialized:");
+    println!("inputs:");
+    println!("{:?}", inputs);
 
-    panic!("done");
- */
-    let inputs: Vec<f32> = vec![1., 3.];
-    let output_count = 1;
+    let activations = network.forward(inputs);
 
-    let mut neural_network = init(inputs.len(), output_count);
-    run_ticks(&mut neural_network, inputs);
+    println!("\nActivations:");
+    println!("{:?}", activations);
+    
+    println!("output:");
+    println!("{:?}", activations.last().unwrap());
+    println!("target:");
+    println!("{}", target);
 
-    println!("End");
+    println!("\nBeginning backward pass...");
+
+    let gradients = network.backwards(&activations, vec![target]);
+
+    println!("Gradients:");
+    println!("{:#?}", gradients);
+
+
+    println!("\nAnalysis complete!");
 }
 
-pub fn init(input_count: usize, output_count: usize) -> NeuralNetwork {
-    let neural_network = NeuralNetwork::new(1., 0.1, vec![input_count, 5, 3, output_count]);
-    neural_network
-}
 
-pub fn run_ticks(neural_network: &mut NeuralNetwork, inputs: Vec<f32>) {
+/*
+pub fn run_ticks(neural_network: &mut NeuralNetwork_Old, inputs: Vec<f32>) {
     let time_start = Instant::now();
 
     for tick in 0..50000 {
@@ -75,3 +70,4 @@ pub fn run_ticks(neural_network: &mut NeuralNetwork, inputs: Vec<f32>) {
         }
     }
 }
+*/
